@@ -1,0 +1,130 @@
+
+package com.mainpackage;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import com.model.Employee;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Configuration cfg = new Configuration();
+		cfg.configure("hibernate.cfg.xml");
+		
+		SessionFactory factory = cfg.buildSessionFactory();
+		Session session = factory.openSession();
+		
+		try {
+			
+			Employee e1 = new Employee();
+			e1.setName("Indra");
+			e1.setSalary(20000);
+			session.beginTransaction();
+			session.save(e1);
+			session.getTransaction().commit();
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			session.close();
+			factory.close();
+		}
+	}
+
+}
+
+
+
+// -----------------------------------------------------
+
+package com.model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="EmployeeTable")
+public class Employee {
+	
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="empid")
+	private int id;	
+	
+	@Column(name="empname")
+	private String name;
+	
+	public Employee() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	@Column(name="empsalary")
+	private int salary;
+	
+	public Employee(int id, String name, int salary) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.salary = salary;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public int getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @return the salary
+	 */
+	public int getSalary() {
+		return salary;
+	}
+
+	/**
+	 * @param salary the salary to set
+	 */
+	public void setSalary(int salary) {
+		this.salary = salary;
+	}
+
+	@Override
+	public String toString() {
+		return "Employee [id=" + id + ", name=" + name + ", salary=" + salary + "]";
+	}
+}
+
+
+// ----------------------------------------------------
+
+

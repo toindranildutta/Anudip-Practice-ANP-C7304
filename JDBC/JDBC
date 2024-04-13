@@ -1,0 +1,258 @@
+package com.sms.beans;
+
+
+public class Student {
+	// Column names
+	
+	private int studentId;
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String phoneNo;
+	
+	
+	// Default constructor
+		public Student() {}
+		
+		/**
+		 * @param studentId
+		 * @param firstName
+		 * @param lastName
+		 * @param email
+		 * @param phoneNo
+		 */
+		public Student(int studentId, String firstName, String lastName, String email, String phoneNo) {
+			super();
+			this.studentId = studentId;
+			this.firstName = firstName;
+			this.lastName = lastName;
+			this.email = email;
+			this.phoneNo = phoneNo;
+		}
+	
+	// Getters Setters
+	
+	public int getStudentId() {
+		return studentId;
+	}
+	public void setStudentId(int studentId) {
+		this.studentId = studentId;
+	}
+	public String getFirstName() {
+		return firstName;
+	}
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+	public String getLastName() {
+		return lastName;
+	}
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getPhoneNo() {
+		return phoneNo;
+	}
+	public void setPhoneNo(String phoneNo) {
+		this.phoneNo = phoneNo;
+	}
+	
+	
+	
+	@Override
+	public String toString() {
+		return "Student [studentId=" + studentId + ", firstName=" + firstName + ", lastName=" + lastName + ", email="
+				+ email + ", phoneNo=" + phoneNo + "]";
+	}
+	
+	
+//	public static void main(String[] args) {
+//		Student student = new Student(2, "Shilpa", "Dutta", "shilpa@gmail.com", "5552568574");
+//		StudentDAO studentdao = new StudentDAO();
+//		studentdao.insertStudent(student);
+//	}
+}
+
+// ------------------------------------------------------------------------------ 
+
+
+
+package com.sms.connection;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class GetConnection {
+	
+	public static Connection getConnection() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			String url = "jdbc:mysql://localhost/studentmanagement";
+			Connection connection = DriverManager.getConnection(url , "root", "Demo@1234");
+			return connection;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+}
+
+
+
+// ------------------------------------------------------------------------------ 
+
+package com.sms.dao;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.sms.beans.Student;
+import com.sms.connection.GetConnection;
+
+public class StudentDAO {
+	public boolean insertStudent(Student student) {
+		String sql = "insert into student values (?, ?, ?, ?, ?)";
+		try {
+			PreparedStatement ps = GetConnection.getConnection().prepareStatement(sql);
+			ps.setInt(1, student.getStudentId());
+			ps.setString(2, student.getFirstName());
+			ps.setString(3, student.getLastName());
+			ps.setString(4, student.getEmail());
+			ps.setString(5, student.getPhoneNo());
+			
+			System.out.println("Student added successfully");
+			
+			return ps.executeUpdate()>0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public boolean deleteStudent(int studentId) {
+		String sql = "delete from student where studentid=?";
+		try {
+			PreparedStatement ps = GetConnection.getConnection().prepareStatement(sql);
+			ps.setInt(1, studentId);
+			return ps.executeUpdate()>0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+		}
+	public boolean updateStudent(int studentId, String email) {
+		String sql = "update student set email=? where studentid=?";
+		try {
+			PreparedStatement ps = GetConnection.getConnection().prepareStatement(sql);
+			ps.setString(1, email);
+			ps.setInt(2, studentId);
+			return ps.executeUpdate()>0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	public Student getStudent(int studentId) {
+		String sql = "select * from student where studentid =?";
+		try {
+			PreparedStatement ps = GetConnection.getConnection().prepareStatement(sql);
+			ps.setInt(1, studentId);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next()) {
+				Student student = new Student();
+				student.setStudentId(rs.getInt(1));
+				student.setFirstName(rs.getString(2));
+				student.setLastName(rs.getString(3));
+				student.setEmail(rs.getString(4));
+				student.setPhoneNo(rs.getString(5));
+				
+				return student;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	public List<Student> getStudents(){
+		List<Student> list = new ArrayList<Student>(); 
+		String sql = "select * from student";
+		try {
+			PreparedStatement ps = GetConnection.getConnection().prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			while(rs.next()) {
+				Student student = new Student();
+				student.setStudentId(rs.getInt(1));
+				student.setFirstName(rs.getString(2));
+				student.setLastName(rs.getString(3));
+				student.setEmail(rs.getString(4));
+				student.setPhoneNo(rs.getString(5));
+				
+				list.add(student);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return list;
+	} 
+}
+
+
+// --------------------------------------------------------------
+
+
+package com.sms.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import com.sms.beans.Student;
+import com.sms.dao.StudentDAO;
+
+/**
+ * Servlet implementation class StudentAddServlet
+ */
+public class StudentAddServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+   
+	public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		int studentid = Integer.parseInt(request.getParameter("studentid"));
+		String firstname = request.getParameter("firstname");
+		String lastname = request.getParameter("lastname");
+		String email = request.getParameter("email");
+		String phoneno = request.getParameter("phoneno");
+		
+		Student student = new Student(studentid, firstname, lastname, email, phoneno);
+		StudentDAO studentdao = new StudentDAO();
+		studentdao.insertStudent(student);
+		
+		
+		
+		PrintWriter out = response.getWriter();
+		out.println("Create successfully");
+		out.println(studentdao.getStudents());
+		
+	}
+
+}
+
